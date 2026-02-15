@@ -2,110 +2,106 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Professional File Size Reducer</title>
+<title>Ultimate File Resizer Tool</title>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:Poppins,sans-serif}
-body{margin:0;background:linear-gradient(135deg,#0f172a,#1e293b,#020617);color:#fff}
-.container{max-width:1000px;margin:auto;padding:30px}
-.card{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border-radius:20px;padding:25px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
-h1{text-align:center;margin-bottom:20px}
-.tabs{display:flex;gap:10px;margin-bottom:20px}
-.tab{flex:1;padding:12px;border-radius:10px;background:#1e293b;text-align:center;cursor:pointer}
+body{margin:0;background:linear-gradient(135deg,#020617,#0f172a,#020617);color:#fff}
+.container{max-width:1050px;margin:auto;padding:25px}
+.card{background:rgba(255,255,255,0.05);backdrop-filter:blur(14px);border-radius:22px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+h1{text-align:center}
+.tabs{display:flex;gap:10px;margin:20px 0}
+.tab{flex:1;padding:12px;border-radius:12px;background:#1e293b;text-align:center;cursor:pointer}
 .tab.active{background:#3b82f6}
 .section{display:none}
 .section.active{display:block}
-.drop{border:2px dashed #3b82f6;border-radius:14px;padding:30px;text-align:center;margin-top:10px}
-input,button{padding:12px;border-radius:10px;border:none;margin-top:10px}
-input{width:100%;background:#020617;color:#fff;border:1px solid #334155}
-button{background:#3b82f6;color:white;font-weight:600;cursor:pointer}
+label{display:block;margin-top:10px;color:#cbd5e1}
+input,select,button{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px}
+input,select{background:#020617;color:#fff;border:1px solid #334155}
+button{background:#3b82f6;color:white;font-weight:600;cursor:pointer;margin-top:15px}
 button:hover{background:#2563eb}
 #download{display:none;margin-top:15px;display:inline-block;background:#10b981;padding:12px 20px;border-radius:10px;text-decoration:none;color:#fff}
+.status{margin-top:12px;color:#94a3b8}
 footer{text-align:center;margin-top:40px;color:#cbd5e1}
-.status{margin-top:10px;color:#94a3b8}
 </style>
 </head>
 <body>
 <div class="container">
 <div class="card">
-<h1>Professional File Size Reducer</h1><div class="tabs">
-<div class="tab active" onclick="switchTab('img')">Image Compressor</div>
-<div class="tab" onclick="switchTab('pdf')">PDF Compressor</div>
+<h1>Ultimate File Resizer Tool</h1><div class="tabs">
+<div class="tab active" onclick="switchTab('img')">Image Tools</div>
+<div class="tab" onclick="switchTab('pdf')">PDF Tools</div>
 </div><div id="img" class="section active">
-<input type="number" id="imgSize" placeholder="Target Size in KB">
-<div class="drop">Upload JPG/PNG <input type="file" id="imgFile" accept="image/*"></div>
-<button onclick="compressImage()">Compress Image</button>
+<label>Target Size (KB)</label>
+<input type="number" id="imgSize"><label>Output Format</label> <select id="imgFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select>
+
+<label>Max Width (px)</label> <input type="number" id="maxWidth">
+
+<label>Max Height (px)</label> <input type="number" id="maxHeight">
+
+<label>Quality (0.1 - 1)</label> <input type="number" step="0.1" min="0.1" max="1" value="0.9" id="quality">
+
+<label>Upload Image</label> <input type="file" id="imgFile" accept="image/*">
+
+<button onclick="compressImage()">Process Image</button>
+
 </div><div id="pdf" class="section">
-<input type="number" id="pdfSize" placeholder="Target Size in KB">
-<div class="drop">Upload PDF <input type="file" id="pdfFile" accept="application/pdf"></div>
-<button onclick="compressPDF()">Compress PDF</button>
+<label>Target Size (KB)</label>
+<input type="number" id="pdfSize"><label>Page Range (example: 1-3 or leave blank)</label> <input type="text" id="pageRange">
+
+<label>Rotate Pages</label> <select id="rotate"><option value="0">No</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>
+
+<label>Upload PDF</label> <input type="file" id="pdfFile" accept="application/pdf">
+
+<button onclick="compressPDF()">Process PDF</button>
+
 </div><div class="status" id="status"></div>
 <a id="download">Download File</a>
 </div>
 <footer>developed by SHOYAB MANSURI</footer>
 </div><script>
-function switchTab(id){
-document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-event.target.classList.add('active');
-document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-}
-
-function showStatus(msg){document.getElementById('status').innerText=msg}
-function ready(blob,name){
-const url=URL.createObjectURL(blob);
-const a=document.getElementById('download');
-a.href=url;a.download=name;a.style.display='inline-block';
-a.innerText='Download Ready File';
-showStatus('Done ✔');
-}
+function switchTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showStatus(t){document.getElementById('status').innerText=t}
+function ready(blob,name){const url=URL.createObjectURL(blob);const a=document.getElementById('download');a.href=url;a.download=name;a.style.display='inline-block';a.innerText='Download Ready File';showStatus('Done ✔');}
 
 async function compressImage(){
-const file=document.getElementById('imgFile').files[0];
-const targetKB=parseFloat(document.getElementById('imgSize').value);
-if(!file||!targetKB)return alert('Select file & size');
-showStatus('Compressing image...');
+const file=document.getElementById('imgFile').files[0];if(!file)return alert('Select image');
+const targetKB=parseFloat(document.getElementById('imgSize').value)||Infinity;
+const format=document.getElementById('imgFormat').value;
+let quality=parseFloat(document.getElementById('quality').value)||0.9;
+const maxW=parseInt(document.getElementById('maxWidth').value)||null;
+const maxH=parseInt(document.getElementById('maxHeight').value)||null;
+showStatus('Processing Image...');
 
-const reader=new FileReader();
-reader.onload=()=>{
-const img=new Image();
+const img=new Image();img.src=URL.createObjectURL(file);
 img.onload=async()=>{
-let q=0.9,min=0.05,max=1,blob;
-for(let i=0;i<18;i++){
-const canvas=document.createElement('canvas');
-canvas.width=img.width;canvas.height=img.height;
-canvas.getContext('2d').drawImage(img,0,0);
-blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
-if(blob.size/1024>targetKB)max=q;else min=q;
-q=(min+max)/2;
+let w=img.width,h=img.height;
+if(maxW&&w>maxW){h=h*(maxW/w);w=maxW}
+if(maxH&&h>maxH){w=w*(maxH/h);h=maxH}
+let blob;
+for(let i=0;i<20;i++){
+const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
+blob=await new Promise(r=>canvas.toBlob(r,format,quality));
+if(blob.size/1024>targetKB)quality-=0.05;else break;
 }
-ready(blob,'compressed.jpg');
-};
-img.src=reader.result;
-};
-reader.readAsDataURL(file);
-}
+ready(blob,'processed');
+};}
 
 async function compressPDF(){
-const file=document.getElementById('pdfFile').files[0];
-const targetKB=parseFloat(document.getElementById('pdfSize').value);
-if(!file||!targetKB)return alert('Select file & size');
+const file=document.getElementById('pdfFile').files[0];if(!file)return alert('Select PDF');
 showStatus('Processing PDF...');
-
 const bytes=await file.arrayBuffer();
 const pdf=await PDFLib.PDFDocument.load(bytes);
 const newPdf=await PDFLib.PDFDocument.create();
-const pages=await newPdf.copyPages(pdf,pdf.getPageIndices());
-pages.forEach(p=>newPdf.addPage(p));
-
-let pdfBytes=await newPdf.save({useObjectStreams:true,compress:true});
-
-if(pdfBytes.length/1024>targetKB){
-showStatus('Target size too small. Browser PDF compression limited.');
-}else{
-ready(new Blob([pdfBytes],{type:'application/pdf'}),'compressed.pdf');
-}
+const range=document.getElementById('pageRange').value;
+let pagesIndex=pdf.getPageIndices();
+if(range.includes('-')){const [s,e]=range.split('-').map(x=>parseInt(x)-1);pagesIndex=pagesIndex.slice(s,e+1)}
+const pages=await newPdf.copyPages(pdf,pagesIndex);
+const rotate=parseInt(document.getElementById('rotate').value);
+pages.forEach(p=>{if(rotate)p.setRotation(PDFLib.degrees(rotate));newPdf.addPage(p)});
+const out=await newPdf.save({useObjectStreams:true,compress:true});
+ready(new Blob([out],{type:'application/pdf'}),'processed.pdf');
 }
 </script></body>
 </html>
