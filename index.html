@@ -11,7 +11,7 @@ body{margin:0;background:linear-gradient(135deg,#020617,#0f172a,#020617);color:#
 .container{max-width:1050px;margin:auto;padding:25px}
 .card{background:rgba(255,255,255,0.05);backdrop-filter:blur(14px);border-radius:22px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 h1{text-align:center}
-.tabs{display:flex;gap:10px;margin:20px 0}
+.tabs{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap}
 .tab{flex:1;padding:12px;border-radius:12px;background:#1e293b;text-align:center;cursor:pointer}
 .tab.active{background:#3b82f6}
 .section{display:none}
@@ -32,30 +32,33 @@ footer{text-align:center;margin-top:40px;color:#cbd5e1}
 <h1>Ultimate File Resizer Tool</h1><div class="tabs">
 <div class="tab active" onclick="switchTab('img')">Image Tools</div>
 <div class="tab" onclick="switchTab('pdf')">PDF Tools</div>
+<div class="tab" onclick="switchTab('img2pdf')">Image → PDF</div>
 </div><div id="img" class="section active">
 <label>Target Size (KB)</label>
-<input type="number" id="imgSize"><label>Output Format</label> <select id="imgFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select>
-
-<label>Max Width (px)</label> <input type="number" id="maxWidth">
-
-<label>Max Height (px)</label> <input type="number" id="maxHeight">
-
-<label>Quality (0.1 - 1)</label> <input type="number" step="0.1" min="0.1" max="1" value="0.9" id="quality">
-
-<label>Upload Image</label> <input type="file" id="imgFile" accept="image/*">
-
+<input type="number" id="imgSize">
+<label>Output Format</label>
+<select id="imgFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select>
+<label>Max Width (px)</label>
+<input type="number" id="maxWidth">
+<label>Max Height (px)</label>
+<input type="number" id="maxHeight">
+<label>Quality (0.1 - 1)</label>
+<input type="number" step="0.1" min="0.1" max="1" value="0.9" id="quality">
+<label>Upload Image</label>
+<input type="file" id="imgFile" accept="image/*">
 <button onclick="compressImage()">Process Image</button>
-
 </div><div id="pdf" class="section">
-<label>Target Size (KB)</label>
-<input type="number" id="pdfSize"><label>Page Range (example: 1-3 or leave blank)</label> <input type="text" id="pageRange">
-
-<label>Rotate Pages</label> <select id="rotate"><option value="0">No</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>
-
-<label>Upload PDF</label> <input type="file" id="pdfFile" accept="application/pdf">
-
+<label>Page Range (example: 1-3 or blank)</label>
+<input type="text" id="pageRange">
+<label>Rotate Pages</label>
+<select id="rotate"><option value="0">No</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>
+<label>Upload PDF</label>
+<input type="file" id="pdfFile" accept="application/pdf">
 <button onclick="compressPDF()">Process PDF</button>
-
+</div><div id="img2pdf" class="section">
+<label>Select Images (multiple allowed)</label>
+<input type="file" id="imgToPdfFiles" accept="image/*" multiple>
+<button onclick="imagesToPDF()">Convert to PDF</button>
 </div><div class="status" id="status"></div>
 <a id="download">Download File</a>
 </div>
@@ -73,7 +76,6 @@ let quality=parseFloat(document.getElementById('quality').value)||0.9;
 const maxW=parseInt(document.getElementById('maxWidth').value)||null;
 const maxH=parseInt(document.getElementById('maxHeight').value)||null;
 showStatus('Processing Image...');
-
 const img=new Image();img.src=URL.createObjectURL(file);
 img.onload=async()=>{
 let w=img.width,h=img.height;
@@ -94,14 +96,30 @@ showStatus('Processing PDF...');
 const bytes=await file.arrayBuffer();
 const pdf=await PDFLib.PDFDocument.load(bytes);
 const newPdf=await PDFLib.PDFDocument.create();
-const range=document.getElementById('pageRange').value;
 let pagesIndex=pdf.getPageIndices();
-if(range.includes('-')){const [s,e]=range.split('-').map(x=>parseInt(x)-1);pagesIndex=pagesIndex.slice(s,e+1)}
+const range=document.getElementById('pageRange').value;
+if(range&&range.includes('-')){const [s,e]=range.split('-').map(x=>parseInt(x)-1);pagesIndex=pagesIndex.slice(s,e+1)}
 const pages=await newPdf.copyPages(pdf,pagesIndex);
 const rotate=parseInt(document.getElementById('rotate').value);
 pages.forEach(p=>{if(rotate)p.setRotation(PDFLib.degrees(rotate));newPdf.addPage(p)});
 const out=await newPdf.save({useObjectStreams:true,compress:true});
 ready(new Blob([out],{type:'application/pdf'}),'processed.pdf');
+}
+
+async function imagesToPDF(){
+const files=document.getElementById('imgToPdfFiles').files;
+if(!files.length)return alert('Select images');
+showStatus('Converting images to PDF...');
+const pdfDoc=await PDFLib.PDFDocument.create();
+for(const file of files){
+const bytes=await file.arrayBuffer();
+let img;
+if(file.type.includes('png')) img=await pdfDoc.embedPng(bytes); else img=await pdfDoc.embedJpg(bytes);
+const page=pdfDoc.addPage([img.width,img.height]);
+page.drawImage(img,{x:0,y:0,width:img.width,height:img.height});
+}
+const pdfBytes=await pdfDoc.save();
+ready(new Blob([pdfBytes],{type:'application/pdf'}),'images.pdf');
 }
 </script></body>
 </html>
