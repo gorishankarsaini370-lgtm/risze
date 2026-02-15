@@ -2,7 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mobile Recharge Portal with Admin & History</title>
+<title>Mobile Recharge Portal - Fully Working</title>
 <style>
 body{font-family:Arial;margin:0;background:#f2f4f8}
 header{background:#0a3d91;color:#fff;padding:15px;text-align:center;font-size:20px;font-weight:bold}
@@ -21,7 +21,7 @@ button:hover{background:#062a63}
 </style>
 </head>
 <body>
-<header>Mobile Recharge Portal with Admin & History</header>
+<header>Mobile Recharge Portal - Fully Working</header>
 <div class="container">
 <div class="admin">
 <strong>Admin Portal</strong><br>
@@ -51,9 +51,9 @@ Wallet Balance: ₹<span id="wallet">5000</span>
 let walletBalance=5000;
 let rechargeHistory=[];const planDB={ airtel:[{price:39,valid:'3 Days',data:'3GB Total'},{price:199,valid:'28 Days',data:'2GB Daily'},{price:349,valid:'28 Days',data:'Unlimited Data'}], jio:[{price:349,valid:'28 Days',data:'2GB Daily'},{price:599,valid:'84 Days',data:'2GB Daily'}], vi:[{price:365,valid:'30 Days',data:'Unlimited Data'},{price:379,valid:'84 Days',data:'6GB Total'}], bsnl:[{price:429,valid:'28 Days',data:'1GB Daily'},{price:499,valid:'90 Days',data:'1GB Daily'}] };
 
-function showPlans(){ const num=document.getElementById('number').value; const op=document.getElementById('operator').value; if(num.length!=10||!op){alert('Enter valid number & operator');return} const box=document.getElementById('plans'); box.innerHTML='<h3>Recharge Plans</h3>'; planDB[op].forEach(p=>{ box.innerHTML+=<div class="plan"><strong>₹${p.price}</strong><br><span class="small">Validity: ${p.valid}<br>Benefits: ${p.data}</span><br><button onclick="recharge('${num}','${op}',${p.price},'${p.valid}','${p.data}')">Recharge ₹${p.price}</button></div>; }); box.classList.remove('hide'); }
+function showPlans(){ const num=document.getElementById('number').value.trim(); const op=document.getElementById('operator').value; if(num.length!=10 || !op){alert('कृपया सही नंबर और कंपनी चुनें'); return;} const box=document.getElementById('plans'); box.innerHTML='<h3>Recharge Plans</h3>'; planDB[op].forEach((p,index)=>{ const btnId='btn-'+op+'-'+index; box.innerHTML+=<div class="plan"><strong>₹${p.price}</strong><br><span class="small">Validity: ${p.valid}<br>Benefits: ${p.data}</span><br><button id='${btnId}'>Recharge ₹${p.price}</button></div>; setTimeout(()=>{ document.getElementById(btnId).addEventListener('click',()=>{ recharge(num, op, p.price, p.valid, p.data); }); },0); }); box.classList.remove('hide'); }
 
-function recharge(number, operator, amount, validity, data){ if(amount>walletBalance){alert('Insufficient Wallet Balance');return} walletBalance-=amount; document.getElementById('wallet').innerText=walletBalance; document.getElementById('success').style.display='block'; rechargeHistory.unshift({number,operator,amount,validity,data,date:new Date().toLocaleString(),status:'Success'}); updateHistory(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }
+function recharge(number, operator, amount, validity, data){ if(amount>walletBalance){alert('Insufficient Wallet Balance');return;} walletBalance-=amount; document.getElementById('wallet').innerText=walletBalance; document.getElementById('success').style.display='block'; rechargeHistory.unshift({number,operator,amount,validity,data,date:new Date().toLocaleString(),status:'Success'}); updateHistory(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }
 
 function updateHistory(){ const histBox=document.getElementById('history'); histBox.innerHTML=''; rechargeHistory.forEach(r=>{ histBox.innerHTML+=<div class="history"><strong>Number:</strong> ${r.number} | <strong>Operator:</strong> ${r.operator} | <strong>Amount:</strong> ₹${r.amount} | <strong>Validity:</strong> ${r.validity} | <strong>Data:</strong> ${r.data} | <strong>Date:</strong> ${r.date} | <strong>Status:</strong> ${r.status}</div>; }); } </script>
 
