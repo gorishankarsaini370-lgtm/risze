@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Professional File Size Reducer</title>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+body{margin:0;background:linear-gradient(135deg,#0f172a,#1e293b,#020617);color:#fff}
+.container{max-width:1000px;margin:auto;padding:30px}
+.card{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border-radius:20px;padding:25px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+h1{text-align:center;margin-bottom:20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px}
+.tab{flex:1;padding:12px;border-radius:10px;background:#1e293b;text-align:center;cursor:pointer}
+.tab.active{background:#3b82f6}
+.section{display:none}
+.section.active{display:block}
+.drop{border:2px dashed #3b82f6;border-radius:14px;padding:30px;text-align:center;margin-top:10px}
+input,button{padding:12px;border-radius:10px;border:none;margin-top:10px}
+input{width:100%;background:#020617;color:#fff;border:1px solid #334155}
+button{background:#3b82f6;color:white;font-weight:600;cursor:pointer}
+button:hover{background:#2563eb}
+#download{display:none;margin-top:15px;display:inline-block;background:#10b981;padding:12px 20px;border-radius:10px;text-decoration:none;color:#fff}
+footer{text-align:center;margin-top:40px;color:#cbd5e1}
+.status{margin-top:10px;color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1>Professional File Size Reducer</h1><div class="tabs">
+<div class="tab active" onclick="switchTab('img')">Image Compressor</div>
+<div class="tab" onclick="switchTab('pdf')">PDF Compressor</div>
+</div><div id="img" class="section active">
+<input type="number" id="imgSize" placeholder="Target Size in KB">
+<div class="drop">Upload JPG/PNG <input type="file" id="imgFile" accept="image/*"></div>
+<button onclick="compressImage()">Compress Image</button>
+</div><div id="pdf" class="section">
+<input type="number" id="pdfSize" placeholder="Target Size in KB">
+<div class="drop">Upload PDF <input type="file" id="pdfFile" accept="application/pdf"></div>
+<button onclick="compressPDF()">Compress PDF</button>
+</div><div class="status" id="status"></div>
+<a id="download">Download File</a>
+</div>
+<footer>developed by SHOYAB MANSURI</footer>
+</div><script>
+function switchTab(id){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+event.target.classList.add('active');
+document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function showStatus(msg){document.getElementById('status').innerText=msg}
+function ready(blob,name){
+const url=URL.createObjectURL(blob);
+const a=document.getElementById('download');
+a.href=url;a.download=name;a.style.display='inline-block';
+a.innerText='Download Ready File';
+showStatus('Done ✔');
+}
+
+async function compressImage(){
+const file=document.getElementById('imgFile').files[0];
+const targetKB=parseFloat(document.getElementById('imgSize').value);
+if(!file||!targetKB)return alert('Select file & size');
+showStatus('Compressing image...');
+
+const reader=new FileReader();
+reader.onload=()=>{
+const img=new Image();
+img.onload=async()=>{
+let q=0.9,min=0.05,max=1,blob;
+for(let i=0;i<18;i++){
+const canvas=document.createElement('canvas');
+canvas.width=img.width;canvas.height=img.height;
+canvas.getContext('2d').drawImage(img,0,0);
+blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
+if(blob.size/1024>targetKB)max=q;else min=q;
+q=(min+max)/2;
+}
+ready(blob,'compressed.jpg');
+};
+img.src=reader.result;
+};
+reader.readAsDataURL(file);
+}
+
+async function compressPDF(){
+const file=document.getElementById('pdfFile').files[0];
+const targetKB=parseFloat(document.getElementById('pdfSize').value);
+if(!file||!targetKB)return alert('Select file & size');
+showStatus('Processing PDF...');
+
+const bytes=await file.arrayBuffer();
+const pdf=await PDFLib.PDFDocument.load(bytes);
+const newPdf=await PDFLib.PDFDocument.create();
+const pages=await newPdf.copyPages(pdf,pdf.getPageIndices());
+pages.forEach(p=>newPdf.addPage(p));
+
+let pdfBytes=await newPdf.save({useObjectStreams:true,compress:true});
+
+if(pdfBytes.length/1024>targetKB){
+showStatus('Target size too small. Browser PDF compression limited.');
+}else{
+ready(new Blob([pdfBytes],{type:'application/pdf'}),'compressed.pdf');
+}
+}
+</script></body>
+</html>
