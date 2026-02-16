@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Admin Login Test</h2>
+
+<input id="id" placeholder="ID">
+<input id="pass" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<script>
+function login(){
+let id=document.getElementById("id").value.trim();
+let pass=document.getElementById("pass").value.trim();
+
+if(id==="11223344" && pass==="123456"){
+document.getElementById("msg").innerText="LOGIN SUCCESS";
+document.getElementById("msg").style.color="green";
+}else{
+document.getElementById("msg").innerText="WRONG LOGIN";
+document.getElementById("msg").style.color="red";
+}
+}
+</script>
+
+</body>
+</html>
