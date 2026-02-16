@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Recharge Portal</title>
+<title>Admin Recharge Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
     font-family: Arial;
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    background: linear-gradient(135deg,#141e30,#243b55);
     color:white;
     text-align:center;
-    margin:0;
 }
 .container{
-    max-width:400px;
-    margin:30px auto;
+    max-width:420px;
+    margin:40px auto;
     background:#ffffff12;
     padding:20px;
     border-radius:15px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
 }
 input,select,button{
     width:100%;
@@ -34,31 +33,45 @@ button{
     font-weight:bold;
     cursor:pointer;
 }
-button:hover{
-    background:#009624;
-}
+button:hover{background:#009624;}
 .plan{
-    background:#ffffff20;
+    background:#ffffff22;
     padding:10px;
     margin:5px;
     border-radius:8px;
     cursor:pointer;
 }
 .hidden{display:none;}
-.adminpanel{
+.dashboard{
     background:black;
-    padding:15px;
-    margin-top:10px;
+    padding:12px;
     border-radius:10px;
+    margin-bottom:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>📱 Online Recharge Portal</h2>
+<h2>🔐 Admin Recharge Portal</h2>
 
-<div class="container" id="userPanel">
+<!-- LOGIN PANEL -->
+<div class="container" id="loginPanel">
+    <h3>Admin Login</h3>
+    <input type="text" id="adminId" placeholder="Login ID">
+    <input type="password" id="adminPass" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="container hidden" id="adminPanel">
+
+    <div class="dashboard">
+        <h4>Wallet Balance: ₹ <span id="wallet">10000</span></h4>
+        <h4>Total Recharges: <span id="count">0</span></h4>
+    </div>
+
+    <h3>📱 Mobile Recharge</h3>
 
     <input type="text" id="mobile" placeholder="Enter Mobile Number">
 
@@ -70,35 +83,13 @@ button:hover{
         <option>BSNL</option>
     </select>
 
-    <h3>Available Plans</h3>
+    <h4>Select Plan</h4>
     <div id="plans"></div>
 
     <input type="number" id="amount" placeholder="Amount Auto Filled">
 
     <button onclick="recharge()">Recharge Now</button>
-
-    <hr>
-    <button onclick="showLogin()">Admin Login</button>
-</div>
-
-
-<!-- ADMIN LOGIN -->
-<div class="container hidden" id="loginPanel">
-    <h3>Admin Login</h3>
-    <input type="text" id="adminId" placeholder="Login ID">
-    <input type="password" id="adminPass" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <button onclick="back()">Back</button>
-</div>
-
-<!-- ADMIN PANEL -->
-<div class="container hidden" id="adminPanel">
-    <h3>Admin Dashboard</h3>
-    <div class="adminpanel">
-        <h4>Wallet Balance: ₹ <span id="wallet">10000</span></h4>
-        <h4>Total Recharges: <span id="count">0</span></h4>
-    </div>
-    <button onclick="logout()">Logout</button>
+    <button onclick="logout()" style="background:red;">Logout</button>
 </div>
 
 
@@ -119,6 +110,23 @@ loadPlans();
 
 function selectPlan(p){
     document.getElementById("amount").value=p;
+}
+
+function login(){
+    let id=document.getElementById("adminId").value;
+    let pass=document.getElementById("adminPass").value;
+
+    if(id==="123" && pass==="000"){
+        document.getElementById("loginPanel").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+    }else{
+        alert("Wrong Login Details");
+    }
+}
+
+function logout(){
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("loginPanel").classList.remove("hidden");
 }
 
 function recharge(){
@@ -145,33 +153,6 @@ function recharge(){
     alert("Recharge Successful ₹"+amount);
     document.getElementById("wallet").innerText=wallet;
     document.getElementById("count").innerText=rechargeCount;
-}
-
-function showLogin(){
-    document.getElementById("userPanel").classList.add("hidden");
-    document.getElementById("loginPanel").classList.remove("hidden");
-}
-
-function back(){
-    document.getElementById("loginPanel").classList.add("hidden");
-    document.getElementById("userPanel").classList.remove("hidden");
-}
-
-function login(){
-    let id=document.getElementById("adminId").value;
-    let pass=document.getElementById("adminPass").value;
-
-    if(id==="123" && pass==="000"){
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("adminPanel").classList.remove("hidden");
-    }else{
-        alert("Wrong Login Details");
-    }
-}
-
-function logout(){
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("userPanel").classList.remove("hidden");
 }
 </script>
 
