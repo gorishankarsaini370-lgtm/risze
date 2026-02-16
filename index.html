@@ -8,17 +8,16 @@
 <style>
 body{
     font-family: Arial;
-    background: linear-gradient(135deg,#141e30,#243b55);
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white;
     text-align:center;
 }
-.container{
+.box{
     max-width:420px;
     margin:40px auto;
     background:#ffffff12;
     padding:20px;
     border-radius:15px;
-    backdrop-filter: blur(8px);
 }
 input,select,button{
     width:100%;
@@ -35,45 +34,40 @@ button{
 }
 button:hover{background:#009624;}
 .plan{
-    background:#ffffff22;
+    background:#ffffff25;
     padding:10px;
     margin:5px;
     border-radius:8px;
     cursor:pointer;
 }
-.hidden{display:none;}
-.dashboard{
-    background:black;
-    padding:12px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
+#adminPanel{display:none;}
 </style>
 </head>
 
 <body>
 
-<h2>🔐 Admin Recharge Portal</h2>
+<h2>🔐 Recharge Admin Panel</h2>
 
-<!-- LOGIN PANEL -->
-<div class="container" id="loginPanel">
-    <h3>Admin Login</h3>
-    <input type="text" id="adminId" placeholder="Login ID">
-    <input type="password" id="adminPass" placeholder="Password">
+<!-- LOGIN -->
+<div class="box" id="loginPanel">
+    <h3>Login</h3>
+    <input type="text" id="adminId" placeholder="Enter ID">
+    <input type="password" id="adminPass" placeholder="Enter Password">
     <button onclick="login()">Login</button>
 </div>
 
 <!-- ADMIN PANEL -->
-<div class="container hidden" id="adminPanel">
+<div class="box" id="adminPanel">
 
-    <div class="dashboard">
-        <h4>Wallet Balance: ₹ <span id="wallet">10000</span></h4>
-        <h4>Total Recharges: <span id="count">0</span></h4>
-    </div>
+    <h3>Dashboard</h3>
+    <p>Wallet: ₹ <span id="wallet">10000</span></p>
+    <p>Total Recharges: <span id="count">0</span></p>
 
-    <h3>📱 Mobile Recharge</h3>
+    <hr>
 
-    <input type="text" id="mobile" placeholder="Enter Mobile Number">
+    <h3>Mobile Recharge</h3>
+
+    <input type="text" id="mobile" placeholder="Mobile Number">
 
     <select id="operator">
         <option value="">Select Operator</option>
@@ -83,76 +77,81 @@ button:hover{background:#009624;}
         <option>BSNL</option>
     </select>
 
-    <h4>Select Plan</h4>
     <div id="plans"></div>
 
-    <input type="number" id="amount" placeholder="Amount Auto Filled">
+    <input type="number" id="amount" placeholder="Amount">
 
-    <button onclick="recharge()">Recharge Now</button>
+    <button onclick="recharge()">Recharge</button>
     <button onclick="logout()" style="background:red;">Logout</button>
-</div>
 
+</div>
 
 <script>
 let wallet=10000;
 let rechargeCount=0;
 
-const planList=[149,199,239,299,399,479,666,719,999];
+const plans=[149,199,239,299,399,479,666,719,999];
 
+// LOAD PLANS
 function loadPlans(){
     let html="";
-    planList.forEach(p=>{
-        html+=<div class="plan" onclick="selectPlan(${p})">₹${p} Plan</div>;
-    });
+    for(let i=0;i<plans.length;i++){
+        html+=<div class="plan" onclick="selectPlan(${plans[i]})">₹${plans[i]} Plan</div>;
+    }
     document.getElementById("plans").innerHTML=html;
 }
 loadPlans();
 
+// SELECT PLAN
 function selectPlan(p){
     document.getElementById("amount").value=p;
 }
 
+// LOGIN (FINAL WORKING)
 function login(){
-    let id=document.getElementById("adminId").value;
-    let pass=document.getElementById("adminPass").value;
+    let id=document.getElementById("adminId").value.trim();
+    let pass=document.getElementById("adminPass").value.trim();
 
-    if(id==="123" && pass==="000"){
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("adminPanel").classList.remove("hidden");
+    if(id=="123" && pass=="000"){
+        document.getElementById("loginPanel").style.display="none";
+        document.getElementById("adminPanel").style.display="block";
     }else{
-        alert("Wrong Login Details");
+        alert("Wrong ID Password");
     }
 }
 
+// LOGOUT
 function logout(){
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("loginPanel").classList.remove("hidden");
+    document.getElementById("adminPanel").style.display="none";
+    document.getElementById("loginPanel").style.display="block";
 }
 
+// RECHARGE
 function recharge(){
-    let mobile=document.getElementById("mobile").value;
+    let mobile=document.getElementById("mobile").value.trim();
     let operator=document.getElementById("operator").value;
     let amount=parseInt(document.getElementById("amount").value);
 
     if(mobile.length!=10){
-        alert("Enter valid mobile number");
+        alert("Enter 10 digit mobile");
         return;
     }
-    if(!operator){
+    if(operator==""){
         alert("Select operator");
         return;
     }
     if(wallet<amount){
-        alert("Insufficient wallet balance");
+        alert("Low Balance");
         return;
     }
 
     wallet-=amount;
     rechargeCount++;
 
-    alert("Recharge Successful ₹"+amount);
     document.getElementById("wallet").innerText=wallet;
     document.getElementById("count").innerText=rechargeCount;
+
+    alert("Recharge Successful ₹"+amount);
 }
 </script>
 
