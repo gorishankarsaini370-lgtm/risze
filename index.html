@@ -1,94 +1,167 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>मोबाइल रिचार्ज पोर्टल</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Recharge Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Admin Section Style */
+        .admin-box { background: #1e293b; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .admin-box h2 { margin: 0; font-size: 18px; color: #cbd5e1; }
+        .balance { font-size: 32px; font-weight: bold; color: #22c55e; }
+
+        /* Form Style */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .btn-view { background-color: #3b82f6; color: white; }
+        .btn-view:hover { background-color: #2563eb; }
+
+        /* Plans Section */
+        #plans-section { margin-top: 20px; display: none; border-top: 2px solid #eee; padding-top: 20px; }
+        .plan-card { border: 1px solid #e2e8f0; padding: 15 padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        .plan-info b { font-size: 18px; color: #1e293b; }
+        .plan-info p { margin: 5px 0 0; font-size: 13px; color: #64748b; }
+        .btn-recharge { width: auto; background-color: #10b981; color: white; padding: 8px 15px; }
+        .btn-recharge:hover { background-color: #059669; }
+
+        /* Message Box */
+        #success-msg { display: none; background: #dcfce7; color: #166534; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #bbf7d0; line-height: 1.5; }
+    </style>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-    <h1 class="text-2xl font-bold mb-4">मोबाइल रिचार्ज</h1>
-    
-    <label class="block mb-2">मोबाइल नंबर डालें:</label>
-    <input type="text" id="mobileNumber" placeholder="10 अंक का नंबर" class="border p-2 w-full mb-4">
+<body>
 
-    <button onclick="detectOperator()" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 w-full">ऑपरेटर डिटेक्ट करें</button>
-
-    <div id="operatorSection" class="mb-4 hidden">
-      <p>आपका ऑपरेटर: <span id="operatorName"></span></p>
-      <button onclick="viewPlans()" class="bg-green-500 text-white px-4 py-2 rounded mt-2">View Plans</button>
+<div class="container">
+    <div class="admin-box">
+        <h2>एडमिन वॉलेट बैलेंस</h2>
+        <div class="balance">₹<span id="wallet">5000.00</span></div>
     </div>
 
-    <div id="plansSection" class="hidden mt-4">
-      <h2 class="font-bold mb-2">प्लान्स:</h2>
-      <div id="plansList" class="space-y-2"></div>
+    <div class="input-group">
+        <label>मोबाइल नंबर</label>
+        <input type="text" id="mobileNumber" placeholder="10 अंकों का नंबर डालें" maxlength="10">
     </div>
 
-    <div id="successMsg" class="hidden mt-4 p-2 bg-green-100 text-green-800 rounded"></div>
-  </div>
+    <div class="input-group">
+        <label>ऑपरेटर चुनें</label>
+        <select id="operator">
+            <option value="">-- कंपनी चुनें --</option>
+            <option value="Jio">Jio</option>
+            <option value="Airtel">Airtel</option>
+            <option value="Vi">Vi (Vodafone Idea)</option>
+            <option value="BSNL">BSNL</option>
+        </select>
+    </div>
+
+    <button class="btn-view" onclick="showPlans()">व्यू प्लान (View Plans)</button>
+
+    <div id="plans-section">
+        <h3 id="operator-title">उपलब्ध प्लान्स</h3>
+        <div id="plans-list"></div>
+    </div>
+
+    <div id="success-msg"></div>
+</div>
 
 <script>
-let operator = "";
+    // डेटाबेस की तरह प्लान्स का डेटा
+    const allPlans = {
+        "Jio": [
+            { price: 239, data: "1.5GB/Day", validity: "28 Days", sms: "100 SMS/Day" },
+            { price: 666, data: "1.5GB/Day", validity: "84 Days", sms: "100 SMS/Day" },
+            { price: 2999, data: "2.5GB/Day", validity: "365 Days", sms: "Unlimited" }
+        ],
+        "Airtel": [
+            { price: 265, data: "1GB/Day", validity: "28 Days", sms: "100 SMS/Day" },
+            { price: 839, data: "2GB/Day", validity: "84 Days", sms: "Airtel Xstream" }
+        ],
+        "Vi": [
+            { price: 299, data: "1.5GB/Day", validity: "28 Days", sms: "Binge All Night" },
+            { price: 479, data: "1.5GB/Day", validity: "56 Days", sms: "Weekend Data Rollover" }
+        ],
+        "BSNL": [
+            { price: 107, data: "3GB Total", validity: "35 Days", sms: "Bsnl Tunes" },
+            { price: 197, data: "2GB/Day", validity: "70 Days", sms: "Unlimited Call" }
+        ]
+    };
 
-function detectOperator() {
-    let mobile = document.getElementById('mobileNumber').value;
-    if(mobile.length !== 10) { alert("सही 10 अंक का नंबर डालें"); return; }
+    let currentBalance = 5000; // शुरुआती एडमिन बैलेंस
 
-    // Prefix logic (सिंपल उदाहरण)
-    let prefix = mobile.substring(0, 4);
-    if(["9810","9811"].includes(prefix)) operator = "Jio";
-    else if(["9876","9877"].includes(prefix)) operator = "Airtel";
-    else operator = "Unknown";
+    function showPlans() {
+        const mobile = document.getElementById('mobileNumber').value;
+        const operator = document.getElementById('operator').value;
+        const plansList = document.getElementById('plans-list');
+        const plansSection = document.getElementById('plans-section');
 
-    document.getElementById('operatorName').innerText = operator;
-    document.getElementById('operatorSection').classList.remove("hidden");
-}
-
-function viewPlans() {
-    document.getElementById('plansSection').classList.remove("hidden");
-    let plansList = document.getElementById('plansList');
-    plansList.innerHTML = "";
-
-    // Fake API / Hardcoded Plans Example
-    let plans = [
-        {name:"रिचार्ज ₹199", benefits:"1.5GB/दिन, 28 दिन वैधता", amount:199},
-        {name:"रिचार्ज ₹399", benefits:"2GB/दिन, 56 दिन वैधता", amount:399},
-    ];
-
-    plans.forEach(plan => {
-        let planDiv = document.createElement("div");
-        planDiv.className = "border p-2 rounded flex justify-between items-center";
-        planDiv.innerHTML = `
-            <div>
-                <p class="font-bold">${plan.name}</p>
-                <p class="text-sm">${plan.benefits}</p>
-            </div>
-            <button class="bg-blue-500 text-white px-3 py-1 rounded" onclick="recharge(${plan.amount}, '${plan.benefits}')">Recharge</button>
-        `;
-        plansList.appendChild(planDiv);
-    });
-}
-
-function recharge(amount, benefits) {
-    let mobile = document.getElementById('mobileNumber').value;
-
-    // Backend API Call (Pseudocode)
-    fetch("/api/recharge", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({mobile, operator, amount, benefits})
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.status==="success"){
-            document.getElementById('successMsg').innerText = ₹${amount} का रिचार्ज सक्सेसफुल! Benfits: ${benefits};
-            document.getElementById('successMsg').classList.remove("hidden");
-        } else {
-            alert("Recharge failed!");
+        if (mobile.length < 10) {
+            alert("कृपया सही 10 अंकों का मोबाइल नंबर डालें।");
+            return;
         }
-    });
-}
+        if (operator === "") {
+            alert("कृपया कंपनी (Operator) का चुनाव करें।");
+            return;
+        }
+
+        // लिस्ट साफ़ करें और नए प्लान दिखाएं
+        plansList.innerHTML = "";
+        document.getElementById('operator-title').innerText = operator + " के बेस्ट प्लान्स";
+        
+        allPlans[operator].forEach(plan => {
+            const card = document.createElement('div');
+            card.className = 'plan-card';
+            card.innerHTML = `
+                <div class="plan-info">
+                    <b>₹${plan.price}</b>
+                    <p>${plan.data} | वैधता: ${plan.validity}<br><small>${plan.sms}</small></p>
+                </div>
+                <button class="btn-recharge" onclick="doRecharge(${plan.price}, '${plan.data}', '${plan.validity}')">रिचार्ज</button>
+            `;
+            plansList.appendChild(card);
+        });
+
+        plansSection.style.display = "block";
+        document.getElementById('success-msg').style.display = "none";
+    }
+
+    function doRecharge(amount, data, validity) {
+        const mobile = document.getElementById('mobileNumber').value;
+        const operator = document.getElementById('operator').value;
+
+        // बैलेंस चेक करें
+        if (currentBalance < amount) {
+            alert("एडमिन वॉलेट में पर्याप्त बैलेंस नहीं है!");
+            return;
+        }
+
+        // कन्फर्मेशन
+        if (confirm(क्या आप ${mobile} पर ₹${amount} का रिचार्ज करना चाहते हैं?)) {
+            
+            // 1. एडमिन बैलेंस कम करें
+            currentBalance -= amount;
+            document.getElementById('wallet').innerText = currentBalance.toFixed(2);
+
+            // 2. सक्सेस मैसेज तैयार करें
+            const successDiv = document.getElementById('success-msg');
+            successDiv.style.display = "block";
+            successDiv.innerHTML = `
+                <strong>✅ रिचार्ज सफल (Successfully)!</strong><br>
+                <b>मोबाइल नंबर:</b> ${mobile}<br>
+                <b>ऑपरेटर:</b> ${operator}<br>
+                <b>राशि:</b> ₹${amount}<br>
+                <b>बेनिफिट्स:</b> ${data}, वैधता ${validity}<br><br>
+                <small><i>* इस नंबर पर कन्फर्मेशन मैसेज भेज दिया गया है।</i></small>
+            `;
+
+            // स्क्रीन को ऊपर स्क्रॉल करें
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    }
 </script>
+
 </body>
 </html>
