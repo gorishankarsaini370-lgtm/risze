@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Recharge Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family: Arial;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    text-align:center;
+}
+.box{
+    max-width:420px;
+    margin:40px auto;
+    background:#ffffff12;
+    padding:20px;
+    border-radius:15px;
+}
+input,select,button{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+}
+button{
+    background:#00c853;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+button:hover{background:#009624;}
+.plan{
+    background:#ffffff25;
+    padding:10px;
+    margin:5px;
+    border-radius:8px;
+    cursor:pointer;
+}
+#adminPanel{display:none;}
+</style>
+</head>
+
+<body>
+
+<h2>🔐 Recharge Admin Panel</h2>
+
+<!-- LOGIN -->
+<div class="box" id="loginPanel">
+    <h3>Login</h3>
+    <input type="text" id="adminId" placeholder="Enter ID">
+    <input type="password" id="adminPass" placeholder="Enter Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="box" id="adminPanel">
+
+    <h3>Dashboard</h3>
+    <p>Wallet: ₹ <span id="wallet">10000</span></p>
+    <p>Total Recharges: <span id="count">0</span></p>
+
+    <hr>
+
+    <h3>Mobile Recharge</h3>
+
+    <input type="text" id="mobile" placeholder="Mobile Number">
+
+    <select id="operator">
+        <option value="">Select Operator</option>
+        <option>Jio</option>
+        <option>Airtel</option>
+        <option>Vi</option>
+        <option>BSNL</option>
+    </select>
+
+    <div id="plans"></div>
+
+    <input type="number" id="amount" placeholder="Amount">
+
+    <button onclick="recharge()">Recharge</button>
+    <button onclick="logout()" style="background:red;">Logout</button>
+
+</div>
+
+<script>
+let wallet=10000;
+let rechargeCount=0;
+
+const plans=[149,199,239,299,399,479,666,719,999];
+
+// LOAD PLANS
+function loadPlans(){
+    let html="";
+    for(let i=0;i<plans.length;i++){
+        html+=<div class="plan" onclick="selectPlan(${plans[i]})">₹${plans[i]} Plan</div>;
+    }
+    document.getElementById("plans").innerHTML=html;
+}
+loadPlans();
+
+// SELECT PLAN
+function selectPlan(p){
+    document.getElementById("amount").value=p;
+}
+
+// LOGIN (FINAL WORKING)
+function login(){
+    let id=document.getElementById("adminId").value.trim();
+    let pass=document.getElementById("adminPass").value.trim();
+
+    if(id=="123" && pass=="000"){
+        document.getElementById("loginPanel").style.display="none";
+        document.getElementById("adminPanel").style.display="block";
+    }else{
+        alert("Wrong ID Password");
+    }
+}
+
+// LOGOUT
+function logout(){
+    document.getElementById("adminPanel").style.display="none";
+    document.getElementById("loginPanel").style.display="block";
+}
+
+// RECHARGE
+function recharge(){
+    let mobile=document.getElementById("mobile").value.trim();
+    let operator=document.getElementById("operator").value;
+    let amount=parseInt(document.getElementById("amount").value);
+
+    if(mobile.length!=10){
+        alert("Enter 10 digit mobile");
+        return;
+    }
+    if(operator==""){
+        alert("Select operator");
+        return;
+    }
+    if(wallet<amount){
+        alert("Low Balance");
+        return;
+    }
+
+    wallet-=amount;
+    rechargeCount++;
+
+    document.getElementById("wallet").innerText=wallet;
+    document.getElementById("count").innerText=rechargeCount;
+
+    alert("Recharge Successful ₹"+amount);
+}
+</script>
+
+</body>
+</html>
