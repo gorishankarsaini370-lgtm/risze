@@ -1,159 +1,192 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Admin Recharge Portal</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recharge Portal</title>
 
 <style>
 body{
-    font-family: Arial;
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color:white;
-    text-align:center;
+font-family:arial;
+background:#f1f3f6;
+text-align:center;
 }
+
 .box{
-    max-width:420px;
-    margin:40px auto;
-    background:#ffffff12;
-    padding:20px;
-    border-radius:15px;
+background:white;
+width:350px;
+margin:20px auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px #ccc;
 }
-input,select,button{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    border:none;
-    border-radius:8px;
+
+input,button{
+width:90%;
+padding:10px;
+margin:6px;
+border-radius:5px;
+border:1px solid #ccc;
 }
+
 button{
-    background:#00c853;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
+background:#0b7dda;
+color:white;
+cursor:pointer;
 }
-button:hover{background:#009624;}
-.plan{
-    background:#ffffff25;
-    padding:10px;
-    margin:5px;
-    border-radius:8px;
-    cursor:pointer;
+
+button:hover{background:#095c9d;}
+
+.hidden{display:none;}
+
+.approve{
+background:green;
+padding:5px 10px;
+color:white;
+border:none;
+cursor:pointer;
 }
-#adminPanel{display:none;}
+
 </style>
 </head>
 
 <body>
 
-<h2>🔐 Recharge Admin Panel</h2>
+<h2>Recharge Portal</h2>
 
-<!-- LOGIN -->
-<div class="box" id="loginPanel">
-    <h3>Login</h3>
-    <input type="text" id="adminId" placeholder="Enter ID">
-    <input type="password" id="adminPass" placeholder="Enter Password">
-    <button onclick="login()">Login</button>
+<div class="box">
+<button onclick="showAdmin()">Admin Login</button>
+<button onclick="showRetailer()">Retailer Login</button>
+<button onclick="showRegister()">Retailer Registration</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLogin" class="box hidden">
+<h3>Admin Login</h3>
+<input id="adminUser" placeholder="Admin ID">
+<input id="adminPass" type="password" placeholder="Password">
+<button onclick="adminLogin()">Login</button>
 </div>
 
 <!-- ADMIN PANEL -->
-<div class="box" id="adminPanel">
+<div id="adminPanel" class="box hidden">
+<h3>Admin Panel</h3>
+<div id="retailerList"></div>
+<button onclick="logout()">Logout</button>
+</div>
 
-    <h3>Dashboard</h3>
-    <p>Wallet: ₹ <span id="wallet">10000</span></p>
-    <p>Total Recharges: <span id="count">0</span></p>
+<!-- RETAILER LOGIN -->
+<div id="retailerLogin" class="box hidden">
+<h3>Retailer Login</h3>
+<input id="retUser" placeholder="Retailer ID">
+<input id="retPass" type="password" placeholder="Password">
+<button onclick="retailerLogin()">Login</button>
+<p id="retMsg"></p>
+</div>
 
-    <hr>
+<!-- RETAILER PANEL -->
+<div id="retailerPanel" class="box hidden">
+<h3>Retailer Dashboard</h3>
+<p>Welcome Retailer ✔ Services Activated</p>
+<button onclick="logout()">Logout</button>
+</div>
 
-    <h3>Mobile Recharge</h3>
-
-    <input type="text" id="mobile" placeholder="Mobile Number">
-
-    <select id="operator">
-        <option value="">Select Operator</option>
-        <option>Jio</option>
-        <option>Airtel</option>
-        <option>Vi</option>
-        <option>BSNL</option>
-    </select>
-
-    <div id="plans"></div>
-
-    <input type="number" id="amount" placeholder="Amount">
-
-    <button onclick="recharge()">Recharge</button>
-    <button onclick="logout()" style="background:red;">Logout</button>
-
+<!-- REGISTRATION -->
+<div id="register" class="box hidden">
+<h3>Retailer Registration</h3>
+<input id="name" placeholder="Name">
+<input id="mobile" placeholder="Mobile">
+<input id="userid" placeholder="Create User ID">
+<input id="password" type="password" placeholder="Create Password">
+<button onclick="register()">Register</button>
 </div>
 
 <script>
-let wallet=10000;
-let rechargeCount=0;
 
-const plans=[149,199,239,299,399,479,666,719,999];
+// Default Admin
+localStorage.setItem("admin","admin");
+localStorage.setItem("adminpass","123456");
 
-// LOAD PLANS
-function loadPlans(){
-    let html="";
-    for(let i=0;i<plans.length;i++){
-        html+=<div class="plan" onclick="selectPlan(${plans[i]})">₹${plans[i]} Plan</div>;
-    }
-    document.getElementById("plans").innerHTML=html;
-}
-loadPlans();
-
-// SELECT PLAN
-function selectPlan(p){
-    document.getElementById("amount").value=p;
+// SHOW SECTIONS
+function hideAll(){
+document.querySelectorAll(".box").forEach(b=>b.classList.add("hidden"));
 }
 
-// LOGIN (FINAL WORKING)
-function login(){
-    let id=document.getElementById("adminId").value.trim();
-    let pass=document.getElementById("adminPass").value.trim();
+function showAdmin(){hideAll();adminLogin.classList.remove("hidden");}
+function showRetailer(){hideAll();retailerLogin.classList.remove("hidden");}
+function showRegister(){hideAll();register.classList.remove("hidden");}
 
-    if(id=="123" && pass=="000"){
-        document.getElementById("loginPanel").style.display="none";
-        document.getElementById("adminPanel").style.display="block";
-    }else{
-        alert("Wrong ID Password");
-    }
+// REGISTER
+function register(){
+let data={
+name:name.value,
+mobile:mobile.value,
+user:userid.value,
+pass:password.value,
+status:"pending"
+};
+
+let list=JSON.parse(localStorage.getItem("retailers")||"[]");
+list.push(data);
+localStorage.setItem("retailers",JSON.stringify(list));
+
+alert("Registration Done! Wait for Admin Approval");
+hideAll();
+}
+
+// ADMIN LOGIN
+function adminLogin(){
+if(adminUser.value==localStorage.admin && adminPass.value==localStorage.adminpass){
+hideAll();
+adminPanel.classList.remove("hidden");
+loadRetailers();
+}else alert("Wrong Admin Login");
+}
+
+// LOAD RETAILERS
+function loadRetailers(){
+let list=JSON.parse(localStorage.getItem("retailers")||"[]");
+retailerList.innerHTML="";
+
+list.forEach((r,i)=>{
+retailerList.innerHTML+=`
+<div style="border:1px solid #ccc;margin:5px;padding:5px">
+<b>${r.name}</b><br>
+User: ${r.user}<br>
+Status: ${r.status}
+${r.status=="pending"?<br><button class="approve" onclick="approve(${i})">Approve</button>:""}
+</div>`;
+});
+}
+
+// APPROVE
+function approve(i){
+let list=JSON.parse(localStorage.getItem("retailers"));
+list[i].status="approved";
+localStorage.setItem("retailers",JSON.stringify(list));
+loadRetailers();
+}
+
+// RETAILER LOGIN
+function retailerLogin(){
+let list=JSON.parse(localStorage.getItem("retailers")||"[]");
+let user=retUser.value;
+let pass=retPass.value;
+
+let r=list.find(x=>x.user==user && x.pass==pass);
+
+if(!r) return retMsg.innerText="Wrong ID Password";
+
+if(r.status!="approved")
+return retMsg.innerText="Not Authorized! Wait Admin Approval";
+
+hideAll();
+retailerPanel.classList.remove("hidden");
 }
 
 // LOGOUT
 function logout(){
-    document.getElementById("adminPanel").style.display="none";
-    document.getElementById("loginPanel").style.display="block";
+location.reload();
 }
 
-// RECHARGE
-function recharge(){
-    let mobile=document.getElementById("mobile").value.trim();
-    let operator=document.getElementById("operator").value;
-    let amount=parseInt(document.getElementById("amount").value);
-
-    if(mobile.length!=10){
-        alert("Enter 10 digit mobile");
-        return;
-    }
-    if(operator==""){
-        alert("Select operator");
-        return;
-    }
-    if(wallet<amount){
-        alert("Low Balance");
-        return;
-    }
-
-    wallet-=amount;
-    rechargeCount++;
-
-    document.getElementById("wallet").innerText=wallet;
-    document.getElementById("count").innerText=rechargeCount;
-
-    alert("Recharge Successful ₹"+amount);
-}
 </script>
-
 </body>
 </html>
