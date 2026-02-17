@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Recharge Portal</title>
+    <style>
+        :root { --primary: #2563eb; --success: #16a34a; --dark: #0f172a; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 10px; }
+        
+        /* Login Overlay */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 1000; display: flex; justify-content: center; align-items: center; color: white; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; color: #333; text-align: center; width: 300px; }
+        
+        .container { max-width: 500px; margin: 20px auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        
+        /* Admin Section */
+        .admin-panel { background: var(--dark); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; }
+        .balance-amt { font-size: 36px; font-weight: 800; color: #4ade80; }
+
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        
+        .btn-main { width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        #plans-display { margin-top: 25px; }
+        .plan-item { border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .buy-btn { background: var(--success); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+
+        #msg-popup { display: none; background: #ecfdf5; border: 2px solid #10b981; padding: 20px; border-radius: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h3>एडमिन लॉगिन</h3>
+        <input type="password" id="passInput" placeholder="पासवर्ड डालें" style="margin-bottom: 15px;">
+        <button class="btn-main" onclick="checkPassword()">लॉगिन करें</button>
+        <p id="error" style="color: red; font-size: 12px; margin-top: 10px; display: none;">गलत पासवर्ड!</p>
+    </div>
+</div>
+
+<div class="container" id="mainPortal">
+    <div class="admin-panel">
+        <h2>वॉलेट बैलेंस</h2>
+        <div class="balance-amt">₹<span id="wallet-bal">10000.00</span></div>
+        <button onclick="location.reload()" style="background:none; border:1px solid #666; color:#999; cursor:pointer; margin-top:10px; border-radius:4px;">Logout</button>
+    </div>
+
+    <div class="field">
+        <label>मोबाइल नंबर</label>
+        <input type="number" id="phone" placeholder="10 अंकों का नंबर">
+    </div>
+
+    <div class="field">
+        <label>ऑपरेटर चुनें</label>
+        <select id="sim-operator">
+            <option value="">-- चुनें --</option>
+            <option value="Jio">Jio</option>
+            <option value="Airtel">Airtel</option>
+            <option value="Vi">Vi</option>
+            <option value="BSNL">BSNL</option>
+        </select>
+    </div>
+
+    <button class="btn-main" onclick="loadPlans()">View Plans</button>
+
+    <div id="plans-display" style="display:none;">
+        <h3 id="op-name" style="color:var(--primary)"></h3>
+        <div id="plans-container"></div>
+    </div>
+
+    <div id="msg-popup"></div>
+</div>
+
+<script>
+    let walletBalance = 10000;
+    let correctPassword = "admin123"; // <--- आपका पासवर्ड यहाँ है
+
+    function checkPassword() {
+        let input = document.getElementById('passInput').value;
+        if(input === correctPassword) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('mainPortal').style.display = 'block';
+        } else {
+            document.getElementById('error').style.display = 'block';
+        }
+    }
+
+    const rechargePlans = {
+        "Jio": [{ price: 239, data: "1.5GB/Day", validity: "28 दिन" }, { price: 666, data: "1.5GB/Day", validity: "84 दिन" }],
+        "Airtel": [{ price: 265, data: "1GB/Day", validity: "28 दिन" }, { price: 839, data: "2GB/Day", validity: "84 दिन" }],
+        "Vi": [{ price: 299, data: "1.5GB/Day", validity: "28 दिन" }, { price: 719, data: "1.5GB/Day", validity: "84 दिन" }],
+        "BSNL": [{ price: 107, data: "3GB Total", validity: "35 दिन" }, { price: 197, data: "2GB/Day", validity: "70 दिन" }]
+    };
+
+    function loadPlans() {
+        const phone = document.getElementById('phone').value;
+        const operator = document.getElementById('sim-operator').value;
+        const container = document.getElementById('plans-container');
+        const display = document.getElementById('plans-display');
+
+        if (phone.length !== 10 || !operator) {
+            alert("सही विवरण भरें!"); return;
+        }
+
+        container.innerHTML = "";
+        document.getElementById('op-name').innerText = operator + " प्लांस";
+        
+        rechargePlans[operator].forEach(plan => {
+            const div = document.createElement('div');
+            div.className = 'plan-item';
+            div.innerHTML = `
+                <div><b>₹${plan.price}</b><br><small>${plan.data} | ${plan.validity}</small></div>
+                <button class="buy-btn" onclick="doRecharge(${plan.price}, '${plan.data}', '${plan.validity}')">रिचार्ज</button>
+            `;
+            container.appendChild(div);
+        });
+        display.style.display = "block";
+    }
+
+    function doRecharge(amt, data, val) {
+        if (walletBalance < amt) { alert("Balance low!"); return; }
+        
+        walletBalance -= amt;
+        document.getElementById('wallet-bal').innerText = walletBalance.toFixed(2);
+
+        const popup = document.getElementById('msg-popup');
+        popup.style.display = "block";
+        popup.innerHTML = <h3>✅ सफल!</h3><p>नंबर: ${document.getElementById('phone').value}<br>प्लान: ₹${amt}<br>बेनिफिट्स: ${data}, ${val}</p>;
+        alert("रिचार्ज सफल और मैसेज भेज दिया गया!");
+    }
+</script>
+</body>
+</html>
